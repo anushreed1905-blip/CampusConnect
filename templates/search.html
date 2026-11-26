@@ -1,0 +1,238 @@
+
+{% extends "base.html" %}
+
+{% block title %}Explore Students | CampusConnect{% endblock %}
+
+{% block content %}
+
+<div class="page-heading">
+    <span class="eyebrow">YOUR CAMPUS COMMUNITY</span>
+    <h1>Explore Students</h1>
+    <p>Find classmates, discover shared interests and make new connections.</p>
+</div>
+
+<section class="panel search-panel">
+
+    <form method="GET"
+          action="{{ url_for('search') }}"
+          class="search-form">
+
+        <div class="search-input-wrap">
+
+            <label for="query">Search students</label>
+
+            <input
+                type="search"
+                id="query"
+                name="q"
+                value="{{ query or '' }}"
+                placeholder="Search by name or username..."
+                list="student-suggestions"
+                autocomplete="off"
+                required
+            >
+
+            <datalist id="student-suggestions"></datalist>
+
+        </div>
+
+        <button type="submit" class="button button-primary">
+            Find Students
+        </button>
+
+    </form>
+
+</section>
+
+<section class="panel">
+
+    <div class="section-heading">
+        <h2>Students</h2>
+
+        {% if results %}
+        <span class="count-pill">
+            {{ results | length }} found
+        </span>
+        {% endif %}
+    </div>
+
+    {% if results %}
+
+    <div class="student-grid">
+
+        {% for student in results %}
+
+        <article class="student-card">
+
+            <div class="student-card-top">
+
+                <div class="avatar avatar-student">
+                    {{ (student.full_name or student.username)[0] | upper }}
+                </div>
+
+                <div class="student-card-identity">
+                    <h3>
+                        {{ student.full_name or student.username }}
+                    </h3>
+
+                    <p>@{{ student.username }}</p>
+                </div>
+
+            </div>
+
+            <p class="programme-tag">
+                {{ student.programme or "University Student" }}
+            </p>
+
+            <div class="degree-tag">
+
+                {% if student.degree == 1 %}
+                    Direct Connection
+
+                {% elif student.degree == 2 %}
+                    Connected Through a Friend
+
+                {% elif student.degree == 3 %}
+                    2 Friends Between You
+
+                {% elif student.degree > 3 %}
+                    {{ student.degree - 1 }} Students Between You
+
+                {% else %}
+                    Not Connected Yet
+
+                {% endif %}
+
+            </div>
+
+            <div class="student-card-links">
+
+                <a href="{{ url_for('view_student',
+                    student_id=student.user_id) }}">
+                    View Profile
+                </a>
+
+                <a href="{{ url_for('connection_path',
+                    other_user_id=student.user_id) }}">
+                    How You're Connected
+                </a>
+
+                <a href="{{ url_for('mutual_connections',
+                    other_user_id=student.user_id) }}">
+                    Friends in Common
+                </a>
+
+            </div>
+
+            {% if student.connected %}
+
+                <div class="status-connected">
+                    Already Connected
+                </div>
+
+            {% elif student.pending %}
+
+                <div class="status-pending">
+                    Invitation Pending
+                </div>
+
+            {% else %}
+
+                <form method="POST"
+                      action="{{ url_for('send_connection_request',
+                      receiver_id=student.user_id) }}">
+
+                    <button type="submit"
+                            class="button button-primary full">
+                        Connect
+                    </button>
+
+                </form>
+
+            {% endif %}
+
+        </article>
+
+        {% endfor %}
+
+    </div>
+
+    {% elif query %}
+
+    <div class="empty-state">
+        <h3>No matching students</h3>
+        <p>Try searching with another name or username.</p>
+    </div>
+
+    {% else %}
+
+    <div class="empty-state">
+        <h3>Meet your campus community</h3>
+        <p>Start typing a name to discover students.</p>
+    </div>
+
+    {% endif %}
+
+</section>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const searchInput = document.getElementById("query");
+    const suggestions = document.getElementById("student-suggestions");
+
+    if (!searchInput || !suggestions) return;
+
+    let controller = null;
+
+    searchInput.addEventListener("input", async function () {
+
+        const query = searchInput.value.trim();
+
+        suggestions.replaceChildren();
+
+        if (controller) {
+            controller.abort();
+        }
+
+        if (!query) return;
+
+        controller = new AbortController();
+
+        try {
+
+            const response = await fetch(
+                "{{ url_for('search_suggest') }}?q=" +
+                encodeURIComponent(query),
+                { signal: controller.signal }
+            );
+
+            if (!response.ok) return;
+
+            const students = await response.json();
+
+            students.forEach(function (student) {
+
+                const option = document.createElement("option");
+
+                option.value = student.username;
+                option.label = student.name;
+
+                suggestions.appendChild(option);
+
+            });
+
+        } catch (error) {
+
+            if (error.name !== "AbortError") {
+                console.error("Search error:", error);
+            }
+
+        }
+
+    });
+
+});
+</script>
+
+{% endblock %}
