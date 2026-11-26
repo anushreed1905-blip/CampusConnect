@@ -52,23 +52,9 @@ data storage.
 
 ## How to Run the Project
 
-1. Download or clone this repository.
-
-2. Open the project folder in VS Code.
-
-3. Install the required dependencies:
-
-   pip install -r requirements.txt
-
-4. Run the Flask application:
-
-   python app.py
-
-5. Open the following address in your browser:
-
-   http://127.0.0.1:5000
-
-6. Register a student account to explore the application.
+Click on the link:
+https://unwashedconcern.pythonanywhere.com
+Register a student account to explore the application.
 
 ## Academic Purpose
 

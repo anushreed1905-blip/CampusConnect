@@ -1,21 +1,21 @@
 import os
+import sqlite3
+import json
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 DB_PATH = os.path.join(BASE_DIR, "campusconnect.db")
-import sqlite3
-import json
 
 
 class Database:
 
-    
-    def __init__(self, db_name="campusconnect.db"):
+    def __init__(self, db_name=DB_PATH):
 
         self.conn = sqlite3.connect(
             db_name,
-            check_same_thread=False
-        )   
+            check_same_thread=False,
+            timeout=30
+        )
 
         self.conn.row_factory = sqlite3.Row
 
