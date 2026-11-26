@@ -54,7 +54,7 @@ data storage.
 
 Click on the link:
 https://unwashedconcern.pythonanywhere.com
-Register a student account to explore the application.
+- Register a student account to explore the application.
 
 ## Academic Purpose
 
