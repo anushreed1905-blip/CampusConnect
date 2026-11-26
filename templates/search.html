@@ -13,31 +13,30 @@
 
 <section class="panel search-panel">
 
-    <form method="GET"
-          action="{{ url_for('search') }}"
-          class="search-form">
+    <form action="{{ url_for('search') }}"
+        method="GET"
+        class="student-search-form">
 
-        <div class="search-input-wrap">
-
-            <label for="query">Search students</label>
+        <div class="live-search-wrapper">
 
             <input
-                type="search"
-                id="query"
+                type="text"
                 name="q"
+                id="query"
                 value="{{ query or '' }}"
-                placeholder="Search by name or username..."
-                list="student-suggestions"
+                placeholder="Search by name or username"
                 autocomplete="off"
-                required
             >
 
-            <datalist id="student-suggestions"></datalist>
+            <div id="live-suggestions"
+                class="live-suggestions"
+                hidden>
+            </div>
 
         </div>
 
-        <button type="submit" class="button button-primary">
-            Find Students
+        <button type="submit" class="btn">
+            Search
         </button>
 
     </form>
@@ -176,63 +175,147 @@
 </section>
 
 <script>
-document.addEventListener("DOMContentLoaded", function () {
 
-    const searchInput = document.getElementById("query");
-    const suggestions = document.getElementById("student-suggestions");
+const searchInput = document.getElementById("query");
 
-    if (!searchInput || !suggestions) return;
+const suggestionBox =
+    document.getElementById("live-suggestions");
 
-    let controller = null;
+let searchController = null;
 
-    searchInput.addEventListener("input", async function () {
+searchInput.addEventListener("input", async function () {
 
-        const query = searchInput.value.trim();
+    const query = searchInput.value.trim();
 
-        suggestions.replaceChildren();
+    suggestionBox.replaceChildren();
+    suggestionBox.hidden = true;
 
-        if (controller) {
-            controller.abort();
+    if (searchController) {
+        searchController.abort();
+    }
+
+    if (query.length === 0) {
+        return;
+    }
+
+    searchController = new AbortController();
+
+    const controller = searchController;
+
+    try {
+
+        const response = await fetch(
+            "{{ url_for('search_suggest') }}?q="
+            + encodeURIComponent(query),
+            { signal: controller.signal }
+        );
+
+        if (!response.ok) {
+            throw new Error("Search request failed");
         }
 
-        if (!query) return;
+        const students = await response.json();
 
-        controller = new AbortController();
+        if (controller.signal.aborted) {
+            return;
+        }
 
-        try {
+        if (students.length === 0) {
 
-            const response = await fetch(
-                "{{ url_for('search_suggest') }}?q=" +
-                encodeURIComponent(query),
-                { signal: controller.signal }
-            );
+            const message = document.createElement("div");
 
-            if (!response.ok) return;
+            message.className = "suggestion-empty";
+            message.textContent = "No matching students";
 
-            const students = await response.json();
+            suggestionBox.appendChild(message);
+            suggestionBox.hidden = false;
 
-            students.forEach(function (student) {
+            return;
+        }
 
-                const option = document.createElement("option");
+        students.forEach(function (student) {
 
-                option.value = student.username;
-                option.label = student.name;
+            const item = document.createElement("button");
 
-                suggestions.appendChild(option);
+            item.type = "button";
+            item.className = "suggestion-item";
+
+            const avatar = document.createElement("div");
+
+            avatar.className = "suggestion-avatar";
+
+            avatar.textContent =
+                student.name.charAt(0).toUpperCase();
+
+            const details = document.createElement("div");
+
+            const name = document.createElement("strong");
+
+            name.textContent = student.name;
+
+            const username = document.createElement("small");
+
+            username.textContent = "@" + student.username;
+
+            details.appendChild(name);
+            details.appendChild(username);
+
+            item.appendChild(avatar);
+            item.appendChild(details);
+
+            item.addEventListener("click", function () {
+
+                searchInput.value = student.username;
+
+                suggestionBox.hidden = true;
+
+                searchInput.form.requestSubmit();
 
             });
 
-        } catch (error) {
+            suggestionBox.appendChild(item);
 
-            if (error.name !== "AbortError") {
-                console.error("Search error:", error);
-            }
+        });
+
+        suggestionBox.hidden = false;
+
+    } catch (error) {
+
+        if (error.name !== "AbortError") {
+
+            console.error(error);
+
+            suggestionBox.textContent =
+                "Unable to load suggestions";
+
+            suggestionBox.hidden = false;
 
         }
 
-    });
+    }
 
 });
+
+document.addEventListener("click", function (event) {
+
+    if (!event.target.closest(".live-search-wrapper")) {
+
+        suggestionBox.hidden = true;
+
+    }
+
+});
+
+searchInput.addEventListener("keydown", function (event) {
+
+    if (event.key === "Escape") {
+
+        suggestionBox.hidden = true;
+
+    }
+
+});
+
 </script>
 
 {% endblock %}

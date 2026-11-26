@@ -1,4 +1,3 @@
-
 class ConnectionManager:
 
     def __init__(self, network, database):

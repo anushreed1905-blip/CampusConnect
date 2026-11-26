@@ -266,20 +266,48 @@ def dashboard():
     # RENDER DASHBOARD
     # ------------------------------------------
     
-    # Prepare feed with likes and comments
-    feed_posts = post_manager.get_feed()
+    # Refresh accepted connections
+    refresh_network()
 
+    current_user_id = session["user_id"]
+
+    # Retrieve direct connections using the graph
+    connection_ids = network.get_connections(
+        current_user_id
+    )
+
+    # Store permitted authors in a set
+    allowed_user_ids = set(connection_ids)
+
+    # Include the logged-in student's own posts
+    allowed_user_ids.add(current_user_id)
+
+    # Retrieve the personalized feed
+    feed_posts = db.get_feed_posts(
+        allowed_user_ids
+    )
+
+    # Additional filtering for safety
+    feed_posts = [
+        post for post in feed_posts
+        if post["user_id"] in allowed_user_ids
+    ]
+
+    # Retrieve likes and comments
     for post in feed_posts:
-        post_id = post["post_id"]
 
-        post["like_count"] = db.get_post_likes(post_id)
-
-        post["liked_by_me"] = db.has_liked_post(
-            post_id,
-            user_id
+        post["like_count"] = db.get_post_likes(
+            post["post_id"]
         )
 
-        post["comments"] = db.get_post_comments(post_id)
+        post["liked_by_me"] = db.has_liked_post(
+            post["post_id"],
+            current_user_id
+        )
+
+        post["comments"] = db.get_post_comments(
+            post["post_id"]
+        )
 
     return render_template(
         "dashboard.html",
@@ -287,8 +315,7 @@ def dashboard():
         profile=current_profile,
         connected_students=connected_students,
         incoming_requests=incoming_requests,
-        outgoing_requests=outgoing_requests,
-        recommendations=recommendations,
+        outgoing_requests=outgoing_requests,            recommendations=recommendations,
         posts=feed_posts
     )
 
@@ -343,8 +370,7 @@ def profile():
     profile_data = db.get_profile(user_id)
 
     return render_template(
-        "profile.html",
-        profile=profile_data
+        "profile.html", profile=profile_data
     )
 
 

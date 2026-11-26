@@ -1415,3 +1415,108 @@ a:hover {
         animation-duration: 0.01ms !important;
     }
 }
+/* LIVE STUDENT SEARCH */
+
+.student-search-form {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.live-search-wrapper {
+    position: relative;
+    flex: 1;
+    min-width: 0;
+}
+
+.live-search-wrapper input {
+    width: 100%;
+    padding: 13px 16px;
+    border: 1px solid #ccd9d1;
+    border-radius: 10px;
+    background: #ffffff;
+    color: #34483c;
+    box-sizing: border-box;
+    outline: none;
+}
+
+.live-search-wrapper input:focus {
+    border-color: #8cae9b;
+    box-shadow: 0 0 0 3px #e5eee8;
+}
+
+.live-suggestions {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    background: #ffffff;
+    border: 1px solid #dce6df;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+    max-height: 320px;
+    overflow-y: auto;
+}
+
+.live-suggestions[hidden] {
+    display: none !important;
+}
+
+.suggestion-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 12px 16px;
+    background: #ffffff;
+    border: none;
+    border-bottom: 1px solid #edf1ee;
+    text-align: left;
+    cursor: pointer;
+    color: #34483c;
+    font-family: inherit;
+}
+
+.suggestion-item:hover {
+    background: #edf5ef;
+}
+
+.suggestion-avatar {
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: #dce9e1;
+    color: #486653;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+}
+
+.suggestion-item strong {
+    display: block;
+    font-size: 14px;
+    color: #34483c;
+}
+
+.suggestion-item small {
+    display: block;
+    margin-top: 3px;
+    font-size: 12px;
+    color: #78867d;
+}
+
+.suggestion-empty {
+    padding: 16px;
+    color: #78867d;
+    font-size: 14px;
+}
+
+/* Prevent the suggestion dropdown from being clipped */
+
+.card:has(.live-search-wrapper) {
+    overflow: visible;
+}

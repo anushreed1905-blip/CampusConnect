@@ -1,6 +1,4 @@
-
 from collections import deque
-
 
 class StudentNetwork:
 

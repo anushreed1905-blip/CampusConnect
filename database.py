@@ -434,10 +434,11 @@ class Database:
         self.conn.commit()
         return cursor.lastrowid
 
-    # Retrieve posts with student details
-    def get_all_posts(self, limit=50):
-        cursor = self.conn.execute(
-            """
+    def get_feed_posts(self, allowed_user_ids):
+
+        allowed_user_ids = set(allowed_user_ids)
+
+        rows = self.conn.execute("""
             SELECT
                 posts.id AS post_id,
                 posts.user_id,
@@ -445,16 +446,38 @@ class Database:
                 posts.created_at,
                 users.username,
                 profiles.full_name
+
             FROM posts
-            JOIN users ON posts.user_id = users.id
-            LEFT JOIN profiles ON posts.user_id = profiles.user_id
-            ORDER BY posts.created_at DESC, posts.id DESC
-            LIMIT ?
-            """,
-            (limit,)
+
+            JOIN users
+                ON posts.user_id = users.id
+
+            LEFT JOIN profiles
+                ON profiles.user_id = users.id
+
+        """).fetchall()
+
+        posts = []
+
+        for row in rows:
+
+            post = dict(row)
+
+            # Only include permitted authors
+            if post["user_id"] in allowed_user_ids:
+
+                posts.append(post)
+
+        # Arrange posts from newest to oldest
+        posts.sort(
+            key=lambda post: (
+                post["created_at"],
+                post["post_id"]
+            ),
+            reverse=True
         )
 
-        return [dict(row) for row in cursor.fetchall()]
+        return posts[:100]
 
     # Delete a post only if it belongs to the requesting user
     def delete_post(self, post_id, user_id):
