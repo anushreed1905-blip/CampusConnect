@@ -1,0 +1,66 @@
+
+{% extends "base.html" %}
+
+{% block title %}
+Connection Path | CampusConnect
+{% endblock %}
+
+{% block content %}
+
+<div class="page-heading">
+    <h1>Shortest Connection Path</h1>
+    <p>Explore how students are connected using BFS.</p>
+</div>
+
+<section class="panel">
+
+    <h2>Connection Details</h2>
+
+    {% if degree == -1 %}
+
+        <p class="empty-message">
+            No connection path exists between you and
+            {{ other_user.username }}.
+        </p>
+
+    {% elif degree == 0 %}
+
+        <p>This is your own profile.</p>
+
+    {% else %}
+
+        <h3>Connection Degree: {{ degree }}</h3>
+
+        <p>
+            This is the shortest path between you and
+            {{ other_user.username }}.
+        </p>
+
+        <div class="student-grid">
+
+            {% for student in path_students %}
+
+                <div class="student-card">
+                    <h3>{{ student.full_name }}</h3>
+                    <p>@{{ student.username }}</p>
+                </div>
+
+                {% if not loop.last %}
+                    <div class="path-arrow">
+                        →
+                    </div>
+                {% endif %}
+
+            {% endfor %}
+
+        </div>
+
+    {% endif %}
+
+    <a href="{{ url_for('dashboard') }}" class="text-link">
+        Back to Dashboard
+    </a>
+
+</section>
+
+{% endblock %}

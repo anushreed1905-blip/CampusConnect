@@ -1,0 +1,89 @@
+
+{% extends "base.html" %}
+
+{% block title %}My Profile | CampusConnect{% endblock %}
+
+{% block content %}
+
+<div class="page-heading">
+    <h1>My Profile</h1>
+    <p>Tell other students a little about yourself.</p>
+</div>
+
+<section class="panel profile-panel">
+
+    <form method="POST" action="{{ url_for('profile') }}">
+
+        <div class="form-group">
+            <label for="full_name">Full Name</label>
+
+            <input
+                type="text"
+                id="full_name"
+                name="full_name"
+                value="{{ profile.full_name or '' }}"
+                placeholder="Enter your full name"
+                required
+            >
+        </div>
+
+        <div class="form-group">
+            <label for="programme">Programme / Branch</label>
+
+            <input
+                type="text"
+                id="programme"
+                name="programme"
+                value="{{ profile.programme or '' }}"
+                placeholder="Example: B.Tech Computer Science"
+            >
+        </div>
+
+        <div class="form-group">
+            <label for="study_year">Year of Study</label>
+
+            <input
+                type="number"
+                id="study_year"
+                name="study_year"
+                min="1"
+                max="10"
+                value="{{ profile.study_year or '' }}"
+                placeholder="Example: 2"
+            >
+        </div>
+
+        <div class="form-group">
+            <label for="bio">About Me</label>
+
+            <textarea
+                id="bio"
+                name="bio"
+                rows="4"
+                placeholder="Tell us about yourself..."
+            >{{ profile.bio or '' }}</textarea>
+        </div>
+
+        <div class="form-group">
+            <label for="skills">Skills</label>
+
+            <input
+                type="text"
+                id="skills"
+                name="skills"
+                value="{{ profile.skills | join(', ') if profile.skills else '' }}"
+                placeholder="Python, Java, Web Development"
+            >
+
+            <small>Separate each skill with a comma.</small>
+        </div>
+
+        <button type="submit" class="primary-btn">
+            Save Profile
+        </button>
+
+    </form>
+
+</section>
+
+{% endblock %}
